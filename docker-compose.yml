@@ -29,7 +29,6 @@ services:
       PMA_PORT: 3306
     networks:
       - survey_network
-  
 
 volumes:
   mysql_data:

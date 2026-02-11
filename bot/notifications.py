@@ -57,12 +57,14 @@ class NotificationSender:
         message += "━━━━━━━━━━━━━━━━━\n"
         # User information
         message += f"<b>Full Name:</b> {user_data['full_name']}\n"
-        message += f"<b>Username:</b> @{user_data.get('telegram_username', 'N/A')}\n"
+        message += f"<b>School:</b> {user_data['school_name']}\n"
+        message += f"<b>Class:</b> {user_data['class_name']}\n"
+        message += f"<b>Username:</b> @{user_data.get('telegram_username', 'N/A')}\n\n"
 
         # Survey answers
         message += "━━━━━━━━━━━━━━━━━\n"
 
-        for i in range(1, 6):
+        for i in range(1, 11):
             question_text = QUESTIONS[i]["text"]
             answer = user_data[f"question_{i}"]
             message += f"{question_text}\n"

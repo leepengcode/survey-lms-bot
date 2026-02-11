@@ -54,13 +54,16 @@ class Database:
 
             query = """
                 INSERT INTO survey_responses 
-                (full_name, telegram_username, telegram_user_id,
-                question_1, question_2, question_3, question_4, question_5)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                (full_name, school_name, class_name, telegram_username, telegram_user_id,
+                question_1, question_2, question_3, question_4, question_5,
+                question_6, question_7, question_8, question_9, question_10)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
 
             values = (
                 user_data["full_name"],
+                user_data["school_name"],
+                user_data["class_name"],
                 user_data.get("telegram_username", "N/A"),
                 user_data["telegram_user_id"],
                 user_data["question_1"],
@@ -68,6 +71,11 @@ class Database:
                 user_data["question_3"],
                 user_data["question_4"],
                 user_data["question_5"],
+                user_data["question_6"],
+                user_data["question_7"],
+                user_data["question_8"],
+                user_data["question_9"],
+                user_data["question_10"],
             )
 
             cursor.execute(query, values)

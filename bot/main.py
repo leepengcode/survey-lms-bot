@@ -13,18 +13,32 @@ from bot.database import Database
 from bot.handlers import (
     start,
     receive_full_name,
+    receive_school_name,
+    receive_class_name,
     receive_answer_1,
     receive_answer_2,
     receive_answer_3,
     receive_answer_4,
     receive_answer_5,
+    receive_answer_6,
+    receive_answer_7,
+    receive_answer_8,
+    receive_answer_9,
+    receive_answer_10,
     cancel,
     FULL_NAME,
+    SCHOOL_NAME,
+    CLASS_NAME,
     QUESTION_1,
     QUESTION_2,
     QUESTION_3,
     QUESTION_4,
     QUESTION_5,
+    QUESTION_6,
+    QUESTION_7,
+    QUESTION_8,
+    QUESTION_9,
+    QUESTION_10,
 )
 
 # Setup logging
@@ -63,6 +77,12 @@ def main():
                 FULL_NAME: [
                     MessageHandler(filters.TEXT & ~filters.COMMAND, receive_full_name)
                 ],
+                SCHOOL_NAME: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_school_name)
+                ],
+                CLASS_NAME: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_class_name)
+                ],
                 QUESTION_1: [
                     MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_1)
                 ],
@@ -77,6 +97,21 @@ def main():
                 ],
                 QUESTION_5: [
                     MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_5)
+                ],
+                QUESTION_6: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_6)
+                ],
+                QUESTION_7: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_7)
+                ],
+                QUESTION_8: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_8)
+                ],
+                QUESTION_9: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_9)
+                ],
+                QUESTION_10: [
+                    MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_10)
                 ],
             },
             fallbacks=[CommandHandler("cancel", cancel)],

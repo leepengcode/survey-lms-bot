@@ -1,14 +1,35 @@
 import logging
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ContextTypes, ConversationHandler
-from bot.questions import QUESTIONS, WELCOME_MESSAGE, THANK_YOU_MESSAGE
+from bot.questions import (
+    QUESTIONS,
+    WELCOME_MESSAGE,
+    THANK_YOU_MESSAGE,
+    ASK_SCHOOL_MESSAGE,
+    ASK_CLASS_MESSAGE,
+)
 from bot.database import Database
 from bot.notifications import NotificationSender
 
 logger = logging.getLogger(__name__)
 
 # Conversation states
-FULL_NAME, QUESTION_1, QUESTION_2, QUESTION_3, QUESTION_4, QUESTION_5 = range(6)
+# Conversation states
+(
+    FULL_NAME,
+    SCHOOL_NAME,
+    CLASS_NAME,
+    QUESTION_1,
+    QUESTION_2,
+    QUESTION_3,
+    QUESTION_4,
+    QUESTION_5,
+    QUESTION_6,
+    QUESTION_7,
+    QUESTION_8,
+    QUESTION_9,
+    QUESTION_10,
+) = range(13)
 
 # These will be initialized later
 db = None
@@ -40,15 +61,49 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def receive_full_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Receive full name and show Question 1"""
+    """Receive full name and ask for school name"""
     full_name = update.message.text.strip()
 
     if not full_name:
-        await update.message.reply_text("Please enter your full name:")
+        await update.message.reply_text("សូមបញ្ចូលឈ្មោះពេញរបស់អ្នក：")
         return FULL_NAME
 
     # Save full name
     context.user_data["full_name"] = full_name
+
+    # Ask for school name
+    await update.message.reply_text(ASK_SCHOOL_MESSAGE)
+
+    return SCHOOL_NAME
+
+
+async def receive_school_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive school name and ask for class"""
+    school_name = update.message.text.strip()
+
+    if not school_name:
+        await update.message.reply_text("សូមបញ្ចូលឈ្មោះសាលារបស់អ្នក：")
+        return SCHOOL_NAME
+
+    # Save school name
+    context.user_data["school_name"] = school_name
+
+    # Ask for class
+    await update.message.reply_text(ASK_CLASS_MESSAGE)
+
+    return CLASS_NAME
+
+
+async def receive_class_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive class name and show Question 1"""
+    class_name = update.message.text.strip()
+
+    if not class_name:
+        await update.message.reply_text("សូមបញ្ចូលថ្នាក់ដែលអ្នកកំពុងបង្រៀន：")
+        return CLASS_NAME
+
+    # Save class name
+    context.user_data["class_name"] = class_name
 
     # Show Question 1 with buttons
     keyboard = [[choice] for choice in QUESTIONS[1]["choices"]]
@@ -126,9 +181,83 @@ async def receive_answer_4(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def receive_answer_5(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Receive answer 5, save to database, send notification, and end survey"""
+    """Receive answer 5 and show Question 6"""
     answer = update.message.text
     context.user_data["question_5"] = answer
+
+    # Show Question 6
+    keyboard = [[choice] for choice in QUESTIONS[6]["choices"]]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard, one_time_keyboard=True, resize_keyboard=True
+    )
+
+    await update.message.reply_text(QUESTIONS[6]["text"], reply_markup=reply_markup)
+
+    return QUESTION_6
+
+
+async def receive_answer_6(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive answer 6 and show Question 7"""
+    answer = update.message.text
+    context.user_data["question_6"] = answer
+
+    keyboard = [[choice] for choice in QUESTIONS[7]["choices"]]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard, one_time_keyboard=True, resize_keyboard=True
+    )
+
+    await update.message.reply_text(QUESTIONS[7]["text"], reply_markup=reply_markup)
+
+    return QUESTION_7
+
+
+async def receive_answer_7(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive answer 7 and show Question 8"""
+    answer = update.message.text
+    context.user_data["question_7"] = answer
+
+    keyboard = [[choice] for choice in QUESTIONS[8]["choices"]]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard, one_time_keyboard=True, resize_keyboard=True
+    )
+
+    await update.message.reply_text(QUESTIONS[8]["text"], reply_markup=reply_markup)
+
+    return QUESTION_8
+
+
+async def receive_answer_8(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive answer 8 and show Question 9"""
+    answer = update.message.text
+    context.user_data["question_8"] = answer
+
+    keyboard = [[choice] for choice in QUESTIONS[9]["choices"]]
+    reply_markup = ReplyKeyboardMarkup(
+        keyboard, one_time_keyboard=True, resize_keyboard=True
+    )
+
+    await update.message.reply_text(QUESTIONS[9]["text"], reply_markup=reply_markup)
+
+    return QUESTION_9
+
+
+async def receive_answer_9(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive answer 9 and show Question 10 (text input)"""
+    answer = update.message.text
+    context.user_data["question_9"] = answer
+
+    # Question 10 is text input - no buttons
+    await update.message.reply_text(
+        QUESTIONS[10]["text"], reply_markup=ReplyKeyboardRemove()
+    )
+
+    return QUESTION_10
+
+
+async def receive_answer_10(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive answer 10 (text), save to database, send notification, and end survey"""
+    answer = update.message.text
+    context.user_data["question_10"] = answer
 
     # Save to database
     success = db.save_survey_response(context.user_data)
@@ -154,7 +283,7 @@ async def receive_answer_5(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Cancel the survey"""
     await update.message.reply_text(
-        "Survey cancelled. Type /start to begin again.",
+        "ការស្ទង់មតិត្រូវបានបោះបង់។ វាយពាក្យ /start ដើម្បីចាប់ផ្តើមឡើងវិញ។",
         reply_markup=ReplyKeyboardRemove(),
     )
     context.user_data.clear()

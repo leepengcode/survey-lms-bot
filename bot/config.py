@@ -20,11 +20,6 @@ class Config:
     @classmethod
     def validate(cls):
         """Validate required configuration"""
-        # DEBUG: Print to see what's loaded
-        print(f"DEBUG - MYSQL_HOST: {cls.MYSQL_HOST}")
-        print(f"DEBUG - MYSQL_USER: {cls.MYSQL_USER}")
-        print(f"DEBUG - MYSQL_PASSWORD: {cls.MYSQL_PASSWORD}")
-
         required = [
             "API_TOKEN",
             "CHANNEL_ID",
