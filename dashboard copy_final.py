@@ -222,27 +222,12 @@ def apply_normalization(df: pd.DataFrame) -> pd.DataFrame:
 #  DATABASE
 # ══════════════════════════════════════════════════════════════════════════════
 
-# Determine DB credentials
-try:
-    # Streamlit Cloud secrets (if running on Streamlit Cloud)
-    DB = st.secrets["mysql"]
-except Exception:
-    # Local development: use .env
-    DB = {
-        "user": os.getenv("MYSQL_USER"),
-        "password": os.getenv("MYSQL_PASSWORD"),
-        "host": os.getenv("MYSQL_HOST"),
-        "port": int(os.getenv("MYSQL_PORT", 3306)),
-        "database": os.getenv("MYSQL_DATABASE"),
-    }
-
 
 def get_connection_string():
-    """Return SQLAlchemy connection string for MySQL."""
     return (
-        f"mysql+pymysql://{DB['user']}:{DB['password']}"
-        f"@{DB['host']}:{DB['port']}"
-        f"/{DB['database']}?charset=utf8mb4"
+        f"mysql+pymysql://{os.getenv('MYSQL_USER')}:{os.getenv('MYSQL_PASSWORD')}"
+        f"@{os.getenv('MYSQL_HOST')}:{os.getenv('MYSQL_PORT')}"
+        f"/{os.getenv('MYSQL_DATABASE')}?charset=utf8mb4"
     )
 
 

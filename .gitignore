@@ -1,5 +1,7 @@
 # Environment variables
 .env
+.env copy
+.streamlit/secrets.toml
 
 # Python
 __pycache__/
