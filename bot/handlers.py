@@ -7,6 +7,7 @@ from bot.questions import (
     THANK_YOU_MESSAGE,
     ASK_SCHOOL_MESSAGE,
     ASK_CLASS_MESSAGE,
+    COMPUTER_USAGE_QUESTION,
 )
 from bot.database import Database
 from bot.notifications import NotificationSender
@@ -14,11 +15,11 @@ from bot.notifications import NotificationSender
 logger = logging.getLogger(__name__)
 
 # Conversation states
-# Conversation states
 (
     FULL_NAME,
     SCHOOL_NAME,
     CLASS_NAME,
+    COMPUTER_USAGE,
     QUESTION_1,
     QUESTION_2,
     QUESTION_3,
@@ -29,7 +30,7 @@ logger = logging.getLogger(__name__)
     QUESTION_8,
     QUESTION_9,
     QUESTION_10,
-) = range(13)
+) = range(14)
 
 # These will be initialized later
 db = None
@@ -94,26 +95,97 @@ async def receive_school_name(update: Update, context: ContextTypes.DEFAULT_TYPE
     return CLASS_NAME
 
 
+# async def receive_class_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     """Receive class name and show Question 1"""
+#     class_name = update.message.text.strip()
+
+#     if not class_name:
+#         await update.message.reply_text("សូមបញ្ចូលថ្នាក់ដែលអ្នកកំពុងបង្រៀន：")
+#         return CLASS_NAME
+
+#     # Save class name
+#     context.user_data["class_name"] = class_name
+
+#     # Show Question 1 with buttons
+#     keyboard = [[choice] for choice in QUESTIONS[1]["choices"]]
+#     reply_markup = ReplyKeyboardMarkup(
+#         keyboard, one_time_keyboard=True, resize_keyboard=True
+#     )
+
+#     await update.message.reply_text(QUESTIONS[1]["text"], reply_markup=reply_markup)
+
+#     return QUESTION_1
+
+
 async def receive_class_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Receive class name and show Question 1"""
+    """Receive class name and show Computer Usage question"""
     class_name = update.message.text.strip()
 
     if not class_name:
-        await update.message.reply_text("សូមបញ្ចូលថ្នាក់ដែលអ្នកកំពុងបង្រៀន：")
+        await update.message.reply_text("សូមបញ្ចូលថ្នាក់ដែលអ្នកបង្រៀន៖")
         return CLASS_NAME
 
     # Save class name
     context.user_data["class_name"] = class_name
 
-    # Show Question 1 with buttons
-    keyboard = [[choice] for choice in QUESTIONS[1]["choices"]]
+    # Show Computer Usage question with buttons
+    keyboard = [[choice] for choice in COMPUTER_USAGE_QUESTION["choices"]]
     reply_markup = ReplyKeyboardMarkup(
         keyboard, one_time_keyboard=True, resize_keyboard=True
     )
 
-    await update.message.reply_text(QUESTIONS[1]["text"], reply_markup=reply_markup)
+    await update.message.reply_text(
+        COMPUTER_USAGE_QUESTION["text"], reply_markup=reply_markup
+    )
 
-    return QUESTION_1
+    return COMPUTER_USAGE
+
+
+async def receive_computer_usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Receive computer usage answer - end survey if 'No', continue if 'Yes'"""
+    answer = update.message.text
+    context.user_data["computer_usage"] = answer
+
+    # Check if user selected "ខ. មិនធ្លាប់" (No/Never used)
+    if answer == "ខ. មិនធ្លាប់":
+        # End survey early - save data without questions 1-10
+        # Set questions 1-10 as "N/A" since they didn't answer
+        for i in range(1, 11):
+            context.user_data[f"question_{i}"] = "N/A"
+
+        # Save to database
+        success = db.save_survey_response(context.user_data)
+
+        if success:
+            # Send notification to channel
+            await notifier.send_survey_notification(context.user_data)
+            logger.info(
+                f"Survey completed early (no computer) by: {context.user_data['full_name']}"
+            )
+        else:
+            logger.error(f"Failed to save survey for: {context.user_data['full_name']}")
+
+        # Send thank you message
+        await update.message.reply_text(
+            THANK_YOU_MESSAGE, reply_markup=ReplyKeyboardRemove()
+        )
+
+        # Clear user data
+        context.user_data.clear()
+
+        return ConversationHandler.END
+
+    # User selected "ក. ធ្លាប់" (Yes/Used before) - continue to Question 1
+    else:
+        # Show Question 1 with buttons
+        keyboard = [[choice] for choice in QUESTIONS[1]["choices"]]
+        reply_markup = ReplyKeyboardMarkup(
+            keyboard, one_time_keyboard=True, resize_keyboard=True
+        )
+
+        await update.message.reply_text(QUESTIONS[1]["text"], reply_markup=reply_markup)
+
+        return QUESTION_1
 
 
 async def receive_answer_1(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -288,3 +360,14 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     context.user_data.clear()
     return ConversationHandler.END
+
+
+async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Log errors caused by updates"""
+    logger.error(f"Update {update} caused error {context.error}")
+
+    # Notify user
+    if update and update.effective_message:
+        await update.effective_message.reply_text(
+            "សូមអភ័យទោស មានបញ្ហាបច្ចេកទេស! សូមព្យាយាមម្តងទៀត ឬទាក់ទងអ្នកគ្រប់គ្រង។"
+        )

@@ -59,15 +59,21 @@ class NotificationSender:
         message += f"<b>Full Name:</b> {user_data['full_name']}\n"
         message += f"<b>School:</b> {user_data['school_name']}\n"
         message += f"<b>Class:</b> {user_data['class_name']}\n"
+        message += f"<b>Computer Usage:</b> {user_data['computer_usage']}\n"
         message += f"<b>Username:</b> @{user_data.get('telegram_username', 'N/A')}\n\n"
 
         # Survey answers
+        message += "<b>Survey Data:</b>\n"
         message += "━━━━━━━━━━━━━━━━━\n"
 
-        for i in range(1, 11):
-            question_text = QUESTIONS[i]["text"]
-            answer = user_data[f"question_{i}"]
-            message += f"{question_text}\n"
-            message += f"<b>{answer}</b>\n"
+        # Only show questions if they answered them (not N/A)
+        if user_data["question_1"] != "N/A":
+            for i in range(1, 11):
+                question_text = QUESTIONS[i]["text"]
+                answer = user_data[f"question_{i}"]
+                message += f"{question_text}\n"
+                message += f"<b>{answer}</b>\n\n"
+        else:
+            message += "ការស្ទង់មតិបានបញ្ចប់ - អ្នកប្រើប្រាស់មិនធ្លាប់ប្រើប្រាស់កុំព្យូទ័រ។\n\n"
 
         return message

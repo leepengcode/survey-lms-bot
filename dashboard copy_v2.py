@@ -400,131 +400,30 @@ def main():
 
         # TAB 2 ───────────────────────────────────────────────────────────────
         with tab2:
-            answered = filtered_df[filtered_df["question_1"] != "N/A"].copy()
+            answered = filtered_df[filtered_df["question_1"] != "N/A"]
             if len(answered) == 0:
                 st.info("No completed responses in current filter.")
             else:
-                # ── Valid answer choices only (filter out typos/garbage) ──────
-                Q_VALID = {
-                    "question_1": [
-                        "ក. ចុច Start Menu → Microsoft Word",
-                        "ខ. ចុច File -> ជ្រើសរើស New (ថ្មី) -> Blank Document",
-                        "គ. ចុច File -> ជ្រើសរើស Save -> ដាក់ឈ្មោះឯកសារ -> Save",
-                    ],
-                    "question_2": [
-                        "ក. ចុច File -> Save -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                        "ខ. ចុច Ctrl + S",
-                        "គ. ចុច File → Save As -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                    ],
-                    "question_3": [
-                        "ក. ចុច File → Print (បោះពុម្ភ)",
-                        "ខ. ចុច File → Open (បើក) -> ជ្រើសរើសឈ្មោះ -> Open",
-                        "គ. Home → Save",
-                    ],
-                    "question_4": [
-                        "ក. វាយអត្ថបទ",
-                        "ខ. គណនា និងវិភាគទិន្នន័យ",
-                        "គ. បង្កើតស្លាយ",
-                    ],
-                    "question_5": [
-                        "ក. = Cell + Cell",
-                        "ខ. = Cell - Cell",
-                        "គ. = Cell + Cell ឬ =Sum(Cell:Cell)",
-                    ],
-                    "question_6": [
-                        "ក. Login user",
-                        "ខ. ចូលមើលវីដេអូមេរៀន",
-                    ],
-                    "question_7": [
-                        "ក. មានតែវីដេអូ",
-                        "ខ. វីដេអូ សង្ខេបមេរៀន និងរង្វាយតម្លៃ",
-                        "គ. វីដេអូ សង្ខេបមេរៀន រង្វាយតម្លៃ និងកិច្ចការផ្ទះ",
-                    ],
-                    "question_8": [
-                        "ក. ចេញពីសៀវភៅពុម្ពរបស់ក្រសួង",
-                        "ខ. សៀវភៅពុម្ព EBC",
-                        "គ. ចេញពីគ្រូល្បីៗ",
-                    ],
-                }
-
-                Q_LABELS = {
-                    "question_1": "Q1: បង្កើតឯកសារថ្មី",
-                    "question_2": "Q2: រក្សាទុកការងារ",
-                    "question_3": "Q3: បើកឯកសារ",
-                    "question_4": "Q4: Excel ប្រើសម្រាប់អ្វី?",
-                    "question_5": "Q5: រូបមន្តបូកលេខ Excel",
-                    "question_6": "Q6: ចូលថ្នាល EBC",
-                    "question_7": "Q7: ប្រភេទខ្លឹមសារ EBC",
-                    "question_8": "Q8: ប្រភព​មេរៀន EBC",
-                }
-
-                CORRECT_LABEL = {
-                    "question_1": "ខ. ចុច File -> ជ្រើសរើស New (ថ្មី) -> Blank Document",
-                    "question_2": "គ. ចុច File → Save As -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                    "question_3": "ខ. ចុច File → Open (បើក) -> ជ្រើសរើសឈ្មោះ -> Open",
-                    "question_4": "ខ. គណនា និងវិភាគទិន្នន័យ",
-                    "question_5": "គ. = Cell + Cell ឬ =Sum(Cell:Cell)",
-                    "question_6": "ក. Login user",
-                    "question_7": "គ. វីដេអូ សង្ខេបមេរៀន រង្វាយតម្លៃ និងកិច្ចការផ្ទះ",
-                    "question_8": "ក. ចេញពីសៀវភៅពុម្ពរបស់ក្រសួង",
-                }
-
-                # Show 2 questions per row
-                q_keys = list(Q_VALID.keys())
-                for i in range(0, len(q_keys), 2):
-                    cols = st.columns(2)
-                    for j, q in enumerate(q_keys[i : i + 2]):
-                        with cols[j]:
-                            valid_answers = Q_VALID[q]
-                            # Filter to only valid choices
-                            q_data = answered[answered[q].isin(valid_answers)]
-                            counts = (
-                                q_data[q]
-                                .value_counts()
-                                .reindex(valid_answers, fill_value=0)
-                                .reset_index()
-                            )
-                            counts.columns = ["Answer", "Count"]
-                            total_q = counts["Count"].sum()
-                            counts["Percent"] = (
-                                (counts["Count"] / total_q * 100).round(1)
-                                if total_q > 0
-                                else 0
-                            )
-                            counts["Color"] = counts["Answer"].apply(
-                                lambda x: (
-                                    "#4CAF50" if x == CORRECT_LABEL[q] else "#90CAF9"
-                                )
-                            )
-                            counts["Label"] = counts["Answer"].str[
-                                :40
-                            ]  # shorten for axis
-
-                            fig = px.bar(
-                                counts,
-                                x="Label",
-                                y="Count",
-                                title=Q_LABELS[q],
-                                text=counts["Percent"].astype(str) + "%",
-                                color="Answer",
-                                color_discrete_map={
-                                    row["Answer"]: (
-                                        "#4CAF50"
-                                        if row["Answer"] == CORRECT_LABEL[q]
-                                        else "#90CAF9"
-                                    )
-                                    for _, row in counts.iterrows()
-                                },
-                            )
-                            fig.update_traces(textposition="outside", showlegend=False)
-                            fig.update_layout(
-                                xaxis_title="",
-                                yaxis_title="Count",
-                                showlegend=False,
-                                margin=dict(t=50, b=10),
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
-                            st.caption(f"✅ Correct: **{CORRECT_LABEL[q]}**")
+                col1, col2 = st.columns(2)
+                with col1:
+                    q1 = answered["question_1"].value_counts().reset_index()
+                    q1.columns = ["Answer", "Count"]
+                    st.plotly_chart(
+                        px.bar(q1, x="Answer", y="Count", title="Q1: Study Hours"),
+                        use_container_width=True,
+                    )
+                with col2:
+                    q2 = answered["question_2"].value_counts().reset_index()
+                    q2.columns = ["Answer", "Count"]
+                    st.plotly_chart(
+                        px.pie(
+                            q2,
+                            names="Answer",
+                            values="Count",
+                            title="Q2: Learning Method",
+                        ),
+                        use_container_width=True,
+                    )
 
         # TAB 3 ───────────────────────────────────────────────────────────────
         with tab3:
@@ -709,69 +608,44 @@ def main():
             st.markdown("---")
             st.subheader("📊 Q9: EBC ជួយការបង្រៀនប៉ុន្មានភាគរយ?")
 
-            Q9_VALID = [
-                "ក. ១០% ទៅ ៣០%",
-                "ខ. ៤០% ទៅ ៦០%",
-                "គ. ៧០% ទៅ ១០០%",
-            ]
-            Q9_COLORS = {
-                "ក. ១០% ទៅ ៣០%": "#FF7043",
-                "ខ. ៤០% ទៅ ៦០%": "#42A5F5",
-                "គ. ៧០% ទៅ ១០០%": "#66BB6A",
+            Q9_OPTIONS = {
+                "ក. ១០% ទៅ ៣០%": "ក. ១០%–៣០%",
+                "ខ. ៤០% ទៅ ៦០%": "ខ. ៤០%–៦០%",
+                "គ. ៧០% ទៅ ១០០%": "គ. ៧០%–១០០%",
             }
 
-            # Filter: only rows with valid Q9 answer
-            q9_df = filtered_df[filtered_df["question_9"].isin(Q9_VALID)].copy()
+            q9_df = filtered_df[filtered_df["question_9"] != "N/A"].copy()
 
             if q9_df.empty:
-                st.info("No valid Q9 responses in current filter.")
+                st.info("No Q9 responses in current filter.")
             else:
-                q9_total = len(q9_df)
-                q9_counts = (
-                    q9_df["question_9"]
-                    .value_counts()
-                    .reindex(Q9_VALID, fill_value=0)
-                    .reset_index()
-                )
+                # Overall Q9 distribution
+                q9_counts = q9_df["question_9"].value_counts().reset_index()
                 q9_counts.columns = ["Answer", "Count"]
+                q9_counts["Label"] = (
+                    q9_counts["Answer"].map(Q9_OPTIONS).fillna(q9_counts["Answer"])
+                )
+                q9_total = q9_counts["Count"].sum()
                 q9_counts["Percent"] = (q9_counts["Count"] / q9_total * 100).round(1)
 
-                # Metrics + pie side by side
                 col_a, col_b = st.columns(2)
                 with col_a:
                     st.markdown("**Overall Distribution**")
-                    for _, row in q9_counts.iterrows():
+                    for _, row in q9_counts.sort_values("Answer").iterrows():
+                        label = Q9_OPTIONS.get(row["Answer"], row["Answer"])
                         st.metric(
-                            label=row["Answer"],
-                            value=f"{row['Count']} teachers",
-                            delta=f"{row['Percent']}%",
+                            label, f"{row['Count']} teachers", f"{row['Percent']}%"
                         )
 
                 with col_b:
                     fig_q9 = px.pie(
                         q9_counts,
-                        names="Answer",
+                        names="Label",
                         values="Count",
                         title="Q9 Distribution",
-                        color="Answer",
-                        color_discrete_map=Q9_COLORS,
+                        color_discrete_sequence=["#4CAF50", "#2196F3", "#FF9800"],
                     )
-                    fig_q9.update_traces(textinfo="percent+value")
                     st.plotly_chart(fig_q9, use_container_width=True)
-
-                # Bar chart overall
-                fig_q9_bar = px.bar(
-                    q9_counts,
-                    x="Answer",
-                    y="Count",
-                    title="Q9 — Overall Count",
-                    text=q9_counts["Percent"].astype(str) + "%",
-                    color="Answer",
-                    color_discrete_map=Q9_COLORS,
-                )
-                fig_q9_bar.update_traces(textposition="outside", showlegend=False)
-                fig_q9_bar.update_layout(xaxis_title="", showlegend=False)
-                st.plotly_chart(fig_q9_bar, use_container_width=True)
 
                 # Q9 breakdown by school
                 st.markdown("**Q9 Breakdown by School**")
@@ -782,13 +656,14 @@ def main():
                     .reset_index()
                 )
                 q9_school.columns.name = None
-                for opt in Q9_VALID:
+                # Ensure all 3 option columns exist
+                for opt in Q9_OPTIONS:
                     if opt not in q9_school.columns:
                         q9_school[opt] = 0
-                q9_school = q9_school[["school_name"] + Q9_VALID].copy()
-                q9_school["Total"] = q9_school[Q9_VALID].sum(axis=1)
-                for opt in Q9_VALID:
-                    q9_school[f"% {opt}"] = (
+                q9_school = q9_school[["school_name"] + list(Q9_OPTIONS.keys())].copy()
+                q9_school["Total"] = q9_school[list(Q9_OPTIONS.keys())].sum(axis=1)
+                for opt, lbl in Q9_OPTIONS.items():
+                    q9_school[f"% {lbl}"] = (
                         q9_school[opt] / q9_school["Total"] * 100
                     ).round(1).astype(str) + "%"
                 q9_school = q9_school.rename(columns={"school_name": "School Name"})
@@ -797,10 +672,14 @@ def main():
                 fig_q9s = px.bar(
                     q9_school,
                     x="School Name",
-                    y=Q9_VALID,
-                    title="Q9 by School",
+                    y=list(Q9_OPTIONS.keys()),
+                    title="Q9 by School — How much has EBC helped?",
                     barmode="stack",
-                    color_discrete_map=Q9_COLORS,
+                    color_discrete_map={
+                        "ក. ១០% ទៅ ៣០%": "#FF5722",
+                        "ខ. ៤០% ទៅ ៦០%": "#2196F3",
+                        "គ. ៧០% ទៅ ១០០%": "#4CAF50",
+                    },
                 )
                 fig_q9s.update_layout(xaxis_tickangle=-30, legend_title="Q9 Answer")
                 st.plotly_chart(fig_q9s, use_container_width=True)

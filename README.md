@@ -112,6 +112,7 @@ For issues or questions, contact the development team.
 # Project Folder Structure
 
 ```
+
 survey-lms-bot/
 │
 ├── .env                          # Environment variables (NOT committed to git)
@@ -170,4 +171,38 @@ survey-lms-bot/
 1. **Never commit .env file** - Contains sensitive tokens and passwords
 2. **Database data persists** - MySQL data stored in Docker volume
 3. **User session data** - Stored in memory during survey (conversation handler)
-4. **Khmer text encoding** - Uses UTF-8 throughout the application
+4. **Khmer text encoding** - Uses UTF-8 throughout the 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project files
+COPY . .
+
+# Start bot
+CMD ["python", "-m", "bot.main"]
+
+

@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  survey_lms_mysql:
+    image: mysql:8
+    container_name: survey_lms_mysql
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  survey_phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: survey_phpmyadmin
+    restart: always
+    ports:
+      - "9090:80"
+    environment:
+      PMA_HOST: survey_lms_mysql
+      PMA_USER: ${MYSQL_USER}
+      PMA_PASSWORD: ${MYSQL_PASSWORD}
+    depends_on:
+      - survey_lms_mysql
+  
+  bot:
+    build: .
+    container_name: survey_bot
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      survey_lms_mysql:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+

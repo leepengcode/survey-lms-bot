@@ -400,131 +400,30 @@ def main():
 
         # TAB 2 ───────────────────────────────────────────────────────────────
         with tab2:
-            answered = filtered_df[filtered_df["question_1"] != "N/A"].copy()
+            answered = filtered_df[filtered_df["question_1"] != "N/A"]
             if len(answered) == 0:
                 st.info("No completed responses in current filter.")
             else:
-                # ── Valid answer choices only (filter out typos/garbage) ──────
-                Q_VALID = {
-                    "question_1": [
-                        "ក. ចុច Start Menu → Microsoft Word",
-                        "ខ. ចុច File -> ជ្រើសរើស New (ថ្មី) -> Blank Document",
-                        "គ. ចុច File -> ជ្រើសរើស Save -> ដាក់ឈ្មោះឯកសារ -> Save",
-                    ],
-                    "question_2": [
-                        "ក. ចុច File -> Save -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                        "ខ. ចុច Ctrl + S",
-                        "គ. ចុច File → Save As -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                    ],
-                    "question_3": [
-                        "ក. ចុច File → Print (បោះពុម្ភ)",
-                        "ខ. ចុច File → Open (បើក) -> ជ្រើសរើសឈ្មោះ -> Open",
-                        "គ. Home → Save",
-                    ],
-                    "question_4": [
-                        "ក. វាយអត្ថបទ",
-                        "ខ. គណនា និងវិភាគទិន្នន័យ",
-                        "គ. បង្កើតស្លាយ",
-                    ],
-                    "question_5": [
-                        "ក. = Cell + Cell",
-                        "ខ. = Cell - Cell",
-                        "គ. = Cell + Cell ឬ =Sum(Cell:Cell)",
-                    ],
-                    "question_6": [
-                        "ក. Login user",
-                        "ខ. ចូលមើលវីដេអូមេរៀន",
-                    ],
-                    "question_7": [
-                        "ក. មានតែវីដេអូ",
-                        "ខ. វីដេអូ សង្ខេបមេរៀន និងរង្វាយតម្លៃ",
-                        "គ. វីដេអូ សង្ខេបមេរៀន រង្វាយតម្លៃ និងកិច្ចការផ្ទះ",
-                    ],
-                    "question_8": [
-                        "ក. ចេញពីសៀវភៅពុម្ពរបស់ក្រសួង",
-                        "ខ. សៀវភៅពុម្ព EBC",
-                        "គ. ចេញពីគ្រូល្បីៗ",
-                    ],
-                }
-
-                Q_LABELS = {
-                    "question_1": "Q1: បង្កើតឯកសារថ្មី",
-                    "question_2": "Q2: រក្សាទុកការងារ",
-                    "question_3": "Q3: បើកឯកសារ",
-                    "question_4": "Q4: Excel ប្រើសម្រាប់អ្វី?",
-                    "question_5": "Q5: រូបមន្តបូកលេខ Excel",
-                    "question_6": "Q6: ចូលថ្នាល EBC",
-                    "question_7": "Q7: ប្រភេទខ្លឹមសារ EBC",
-                    "question_8": "Q8: ប្រភព​មេរៀន EBC",
-                }
-
-                CORRECT_LABEL = {
-                    "question_1": "ខ. ចុច File -> ជ្រើសរើស New (ថ្មី) -> Blank Document",
-                    "question_2": "គ. ចុច File → Save As -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                    "question_3": "ខ. ចុច File → Open (បើក) -> ជ្រើសរើសឈ្មោះ -> Open",
-                    "question_4": "ខ. គណនា និងវិភាគទិន្នន័យ",
-                    "question_5": "គ. = Cell + Cell ឬ =Sum(Cell:Cell)",
-                    "question_6": "ក. Login user",
-                    "question_7": "គ. វីដេអូ សង្ខេបមេរៀន រង្វាយតម្លៃ និងកិច្ចការផ្ទះ",
-                    "question_8": "ក. ចេញពីសៀវភៅពុម្ពរបស់ក្រសួង",
-                }
-
-                # Show 2 questions per row
-                q_keys = list(Q_VALID.keys())
-                for i in range(0, len(q_keys), 2):
-                    cols = st.columns(2)
-                    for j, q in enumerate(q_keys[i : i + 2]):
-                        with cols[j]:
-                            valid_answers = Q_VALID[q]
-                            # Filter to only valid choices
-                            q_data = answered[answered[q].isin(valid_answers)]
-                            counts = (
-                                q_data[q]
-                                .value_counts()
-                                .reindex(valid_answers, fill_value=0)
-                                .reset_index()
-                            )
-                            counts.columns = ["Answer", "Count"]
-                            total_q = counts["Count"].sum()
-                            counts["Percent"] = (
-                                (counts["Count"] / total_q * 100).round(1)
-                                if total_q > 0
-                                else 0
-                            )
-                            counts["Color"] = counts["Answer"].apply(
-                                lambda x: (
-                                    "#4CAF50" if x == CORRECT_LABEL[q] else "#90CAF9"
-                                )
-                            )
-                            counts["Label"] = counts["Answer"].str[
-                                :40
-                            ]  # shorten for axis
-
-                            fig = px.bar(
-                                counts,
-                                x="Label",
-                                y="Count",
-                                title=Q_LABELS[q],
-                                text=counts["Percent"].astype(str) + "%",
-                                color="Answer",
-                                color_discrete_map={
-                                    row["Answer"]: (
-                                        "#4CAF50"
-                                        if row["Answer"] == CORRECT_LABEL[q]
-                                        else "#90CAF9"
-                                    )
-                                    for _, row in counts.iterrows()
-                                },
-                            )
-                            fig.update_traces(textposition="outside", showlegend=False)
-                            fig.update_layout(
-                                xaxis_title="",
-                                yaxis_title="Count",
-                                showlegend=False,
-                                margin=dict(t=50, b=10),
-                            )
-                            st.plotly_chart(fig, use_container_width=True)
-                            st.caption(f"✅ Correct: **{CORRECT_LABEL[q]}**")
+                col1, col2 = st.columns(2)
+                with col1:
+                    q1 = answered["question_1"].value_counts().reset_index()
+                    q1.columns = ["Answer", "Count"]
+                    st.plotly_chart(
+                        px.bar(q1, x="Answer", y="Count", title="Q1: Study Hours"),
+                        use_container_width=True,
+                    )
+                with col2:
+                    q2 = answered["question_2"].value_counts().reset_index()
+                    q2.columns = ["Answer", "Count"]
+                    st.plotly_chart(
+                        px.pie(
+                            q2,
+                            names="Answer",
+                            values="Count",
+                            title="Q2: Learning Method",
+                        ),
+                        use_container_width=True,
+                    )
 
         # TAB 3 ───────────────────────────────────────────────────────────────
         with tab3:
@@ -545,61 +444,8 @@ def main():
 
         # TAB 4 ───────────────────────────────────────────────────────────────
         with tab4:
-            # ── 1. School vs Computer Usage ───────────────────────────────────
-            st.subheader("🏫 School vs Computer Usage")
-
-            # Build clean cross-tab: only ក. ធ្លាប់ and ខ. មិនធ្លាប់ columns
-            comp_yes = "ក. ធ្លាប់"
-            comp_no = "ខ. មិនធ្លាប់"
-
-            def school_computer_table(df_in):
-                grp = (
-                    df_in.groupby("school_name")["computer_usage"]
-                    .value_counts()
-                    .unstack(fill_value=0)
-                )
-                for col in [comp_yes, comp_no]:
-                    if col not in grp.columns:
-                        grp[col] = 0
-                grp = grp[[comp_yes, comp_no]].copy()
-                grp.index.name = "School Name"
-                grp["Total"] = grp[comp_yes] + grp[comp_no]
-                grp["% ធ្លាប់"] = (grp[comp_yes] / grp["Total"] * 100).round(1).astype(
-                    str
-                ) + "%"
-                grp["% មិនធ្លាប់"] = (grp[comp_no] / grp["Total"] * 100).round(1).astype(
-                    str
-                ) + "%"
-                grp = grp.reset_index()
-                grp.columns = [
-                    "School Name",
-                    "ក. ធ្លាប់",
-                    "ខ. មិនធ្លាប់",
-                    "Total",
-                    "% ធ្លាប់",
-                    "% មិនធ្លាប់",
-                ]
-                return grp.sort_values("Total", ascending=False).reset_index(drop=True)
-
-            comp_table = school_computer_table(filtered_df)
-            st.dataframe(comp_table, use_container_width=True, hide_index=True)
-
-            # Bar chart
-            fig_comp = px.bar(
-                comp_table,
-                x="School Name",
-                y=["ក. ធ្លាប់", "ខ. មិនធ្លាប់"],
-                title="Computer Experience by School",
-                barmode="stack",
-                color_discrete_map={"ក. ធ្លាប់": "#2196F3", "ខ. មិនធ្លាប់": "#FF5722"},
-            )
-            fig_comp.update_layout(xaxis_tickangle=-30, legend_title="Experience")
-            st.plotly_chart(fig_comp, use_container_width=True)
-
-            # ── 2. Teachers Without Computer Experience ───────────────────────
-            st.markdown("---")
-            st.subheader("🙋 Teachers Without Computer Experience")
-            no_comp = filtered_df[filtered_df["computer_usage"] == comp_no]
+            st.subheader("Teachers Without Computer Experience")
+            no_comp = filtered_df[filtered_df["computer_usage"] == "ខ. មិនធ្លាប់"]
             st.metric("Count", len(no_comp))
             if len(no_comp) > 0:
                 st.dataframe(
@@ -607,242 +453,54 @@ def main():
                     use_container_width=True,
                 )
 
-            # ── 3. Quiz Score per Teacher ─────────────────────────────────────
             st.markdown("---")
-            st.subheader("📝 Quiz Score per Teacher (Q1–Q8)")
-            st.caption(
-                "Only teachers who have computer experience and answered questions are scored."
+            st.subheader("School vs Computer Usage Cross-Tab")
+            st.dataframe(
+                pd.crosstab(filtered_df["school_name"], filtered_df["computer_usage"]),
+                use_container_width=True,
             )
 
-            # Correct answers map
-            CORRECT = {
-                "question_1": "ខ. ចុច File -> ជ្រើសរើស New (ថ្មី) -> Blank Document",
-                "question_2": "គ. ចុច File → Save As -> ដាក់ឈ្មោះឯកសារ -> Save ឬ Ctrl + S",
-                "question_3": "ខ. ចុច File → Open (បើក) -> ជ្រើសរើសឈ្មោះ -> Open",
-                "question_4": "ខ. គណនា និងវិភាគទិន្នន័យ",
-                "question_5": "គ. = Cell + Cell ឬ =Sum(Cell:Cell)",
-                "question_6": "ក. Login user",
-                "question_7": "គ. វីដេអូ សង្ខេបមេរៀន រង្វាយតម្លៃ និងកិច្ចការផ្ទះ",
-                "question_8": "ក. ចេញពីសៀវភៅពុម្ពរបស់ក្រសួង",
-            }
-
-            scored_df = filtered_df[filtered_df["question_1"] != "N/A"].copy()
-
-            if scored_df.empty:
-                st.info("No answered responses in current filter.")
-            else:
-                # Score each row
-                for q, correct in CORRECT.items():
-                    scored_df[f"{q}_correct"] = (
-                        scored_df[q].str.strip() == correct.strip()
-                    )
-
-                scored_df["score"] = scored_df[[f"{q}_correct" for q in CORRECT]].sum(
-                    axis=1
-                )
-                scored_df["score_pct"] = (
-                    scored_df["score"] / len(CORRECT) * 100
-                ).round(1)
-
-                # ── Per-teacher score table ───────────────────────────────────
-                score_cols = ["full_name", "school_name", "score", "score_pct"] + [
-                    f"{q}_correct" for q in CORRECT
-                ]
-                score_display = scored_df[score_cols].copy()
-                score_display.columns = ["ឈ្មោះ", "សាលា", "ពិន្ទុ (/ 8)", "ភាគរយ (%)"] + [
-                    f"Q{i + 1}" for i in range(len(CORRECT))
-                ]
-
-                # Colour True/False
-                def colour_bool(val):
-                    if val is True:
-                        return "background-color: #c8e6c9; color: #1b5e20"
-                    elif val is False:
-                        return "background-color: #ffcdd2; color: #b71c1c"
-                    return ""
-
-                bool_cols = [f"Q{i + 1}" for i in range(len(CORRECT))]
-                st.dataframe(
-                    score_display.style.applymap(colour_bool, subset=bool_cols),
-                    use_container_width=True,
-                    height=400,
-                )
-
-                # ── Score summary by school ───────────────────────────────────
-                st.markdown("---")
-                st.subheader("📊 Average Score by School")
-                school_score = (
-                    scored_df.groupby("school_name")
-                    .agg(
-                        Teachers=("score", "count"),
-                        Avg_Score=("score", "mean"),
-                        Avg_Pct=("score_pct", "mean"),
-                    )
-                    .round(1)
-                    .reset_index()
+            st.markdown("---")
+            st.subheader("🔀 Name Variants Merged")
+            st.caption("Every raw name that was mapped to a canonical name.")
+            if "school_raw" in filtered_df.columns:
+                vdf = (
+                    filtered_df[
+                        filtered_df["school_raw"] != filtered_df["school_name"]
+                    ][["school_raw", "school_name"]]
+                    .drop_duplicates()
                     .rename(
                         columns={
-                            "school_name": "School Name",
-                            "Avg_Score": "Avg Score (/ 8)",
-                            "Avg_Pct": "Avg %",
+                            "school_raw": "As Written by Teacher",
+                            "school_name": "Canonical Name",
                         }
                     )
-                    .sort_values("Avg %", ascending=False)
+                    .sort_values("Canonical Name")
                 )
-                st.dataframe(school_score, use_container_width=True, hide_index=True)
-
-                fig_score = px.bar(
-                    school_score,
-                    x="School Name",
-                    y="Avg %",
-                    title="Average Quiz Score % by School",
-                    color="Avg %",
-                    color_continuous_scale="RdYlGn",
-                    range_color=[0, 100],
-                    text="Avg %",
-                )
-                fig_score.update_traces(texttemplate="%{text}%", textposition="outside")
-                fig_score.update_layout(xaxis_tickangle=-30)
-                st.plotly_chart(fig_score, use_container_width=True)
-
-            # ── 4. Q9 — How much has EBC helped? ─────────────────────────────
-            st.markdown("---")
-            st.subheader("📊 Q9: EBC ជួយការបង្រៀនប៉ុន្មានភាគរយ?")
-
-            Q9_VALID = [
-                "ក. ១០% ទៅ ៣០%",
-                "ខ. ៤០% ទៅ ៦០%",
-                "គ. ៧០% ទៅ ១០០%",
-            ]
-            Q9_COLORS = {
-                "ក. ១០% ទៅ ៣០%": "#FF7043",
-                "ខ. ៤០% ទៅ ៦០%": "#42A5F5",
-                "គ. ៧០% ទៅ ១០០%": "#66BB6A",
-            }
-
-            # Filter: only rows with valid Q9 answer
-            q9_df = filtered_df[filtered_df["question_9"].isin(Q9_VALID)].copy()
-
-            if q9_df.empty:
-                st.info("No valid Q9 responses in current filter.")
-            else:
-                q9_total = len(q9_df)
-                q9_counts = (
-                    q9_df["question_9"]
-                    .value_counts()
-                    .reindex(Q9_VALID, fill_value=0)
-                    .reset_index()
-                )
-                q9_counts.columns = ["Answer", "Count"]
-                q9_counts["Percent"] = (q9_counts["Count"] / q9_total * 100).round(1)
-
-                # Metrics + pie side by side
-                col_a, col_b = st.columns(2)
-                with col_a:
-                    st.markdown("**Overall Distribution**")
-                    for _, row in q9_counts.iterrows():
-                        st.metric(
-                            label=row["Answer"],
-                            value=f"{row['Count']} teachers",
-                            delta=f"{row['Percent']}%",
-                        )
-
-                with col_b:
-                    fig_q9 = px.pie(
-                        q9_counts,
-                        names="Answer",
-                        values="Count",
-                        title="Q9 Distribution",
-                        color="Answer",
-                        color_discrete_map=Q9_COLORS,
-                    )
-                    fig_q9.update_traces(textinfo="percent+value")
-                    st.plotly_chart(fig_q9, use_container_width=True)
-
-                # Bar chart overall
-                fig_q9_bar = px.bar(
-                    q9_counts,
-                    x="Answer",
-                    y="Count",
-                    title="Q9 — Overall Count",
-                    text=q9_counts["Percent"].astype(str) + "%",
-                    color="Answer",
-                    color_discrete_map=Q9_COLORS,
-                )
-                fig_q9_bar.update_traces(textposition="outside", showlegend=False)
-                fig_q9_bar.update_layout(xaxis_title="", showlegend=False)
-                st.plotly_chart(fig_q9_bar, use_container_width=True)
-
-                # Q9 breakdown by school
-                st.markdown("**Q9 Breakdown by School**")
-                q9_school = (
-                    q9_df.groupby(["school_name", "question_9"])
-                    .size()
-                    .unstack(fill_value=0)
-                    .reset_index()
-                )
-                q9_school.columns.name = None
-                for opt in Q9_VALID:
-                    if opt not in q9_school.columns:
-                        q9_school[opt] = 0
-                q9_school = q9_school[["school_name"] + Q9_VALID].copy()
-                q9_school["Total"] = q9_school[Q9_VALID].sum(axis=1)
-                for opt in Q9_VALID:
-                    q9_school[f"% {opt}"] = (
-                        q9_school[opt] / q9_school["Total"] * 100
-                    ).round(1).astype(str) + "%"
-                q9_school = q9_school.rename(columns={"school_name": "School Name"})
-                st.dataframe(q9_school, use_container_width=True, hide_index=True)
-
-                fig_q9s = px.bar(
-                    q9_school,
-                    x="School Name",
-                    y=Q9_VALID,
-                    title="Q9 by School",
-                    barmode="stack",
-                    color_discrete_map=Q9_COLORS,
-                )
-                fig_q9s.update_layout(xaxis_tickangle=-30, legend_title="Q9 Answer")
-                st.plotly_chart(fig_q9s, use_container_width=True)
-
-            # ── 5. Unresolved school names (diagnostic) ───────────────────────
-            st.markdown("---")
-            with st.expander("🔀 Name Variants Merged / Unresolved (diagnostic)"):
-                if "school_raw" in filtered_df.columns:
-                    vdf = (
-                        filtered_df[
-                            filtered_df["school_raw"] != filtered_df["school_name"]
-                        ][["school_raw", "school_name"]]
-                        .drop_duplicates()
-                        .rename(
-                            columns={
-                                "school_raw": "As Written",
-                                "school_name": "Canonical",
-                            }
-                        )
-                        .sort_values("Canonical")
-                    )
-                    if vdf.empty:
-                        st.success("✅ No variants in current filter.")
-                    else:
-                        st.dataframe(vdf, use_container_width=True)
-
-                all_canonical = set(get_all_aliases().values())
-                unresolved = (
-                    filtered_df[~filtered_df["school_name"].isin(all_canonical)][
-                        "school_name"
-                    ]
-                    .value_counts()
-                    .reset_index()
-                )
-                unresolved.columns = ["School Name", "Count"]
-                if unresolved.empty:
-                    st.success("✅ All school names resolved.")
+                if vdf.empty:
+                    st.success("✅ No variants in current filter.")
                 else:
-                    st.warning(
-                        f"{len(unresolved)} unresolved — add in 🏫 School Mapping tab."
-                    )
-                    st.dataframe(unresolved, use_container_width=True)
+                    st.dataframe(vdf, use_container_width=True)
+
+            st.markdown("---")
+            st.subheader("⚠️ Unresolved School Names")
+            st.caption("Names not in any alias table — go to 🏫 School Mapping to fix.")
+            all_canonical = set(get_all_aliases().values())
+            unresolved = (
+                filtered_df[~filtered_df["school_name"].isin(all_canonical)][
+                    "school_name"
+                ]
+                .value_counts()
+                .reset_index()
+            )
+            unresolved.columns = ["School Name", "Count"]
+            if unresolved.empty:
+                st.success("✅ All school names resolved.")
+            else:
+                st.warning(
+                    f"{len(unresolved)} unresolved name(s). Add them in 🏫 School Mapping."
+                )
+                st.dataframe(unresolved, use_container_width=True)
 
         # TAB 5 ───────────────────────────────────────────────────────────────
         with tab5:

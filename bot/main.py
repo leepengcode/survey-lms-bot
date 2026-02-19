@@ -1,6 +1,6 @@
 import logging
 from telegram import Update
-from bot.handlers import initialize_services
+from bot.handlers import error_handler, initialize_services
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -10,11 +10,15 @@ from telegram.ext import (
 )
 from bot.config import Config
 from bot.database import Database
+from logging.handlers import RotatingFileHandler
+import sys
+
 from bot.handlers import (
     start,
     receive_full_name,
     receive_school_name,
     receive_class_name,
+    receive_computer_usage,
     receive_answer_1,
     receive_answer_2,
     receive_answer_3,
@@ -29,6 +33,7 @@ from bot.handlers import (
     FULL_NAME,
     SCHOOL_NAME,
     CLASS_NAME,
+    COMPUTER_USAGE,
     QUESTION_1,
     QUESTION_2,
     QUESTION_3,
@@ -41,9 +46,17 @@ from bot.handlers import (
     QUESTION_10,
 )
 
-# Setup logging
+# Force UTF-8 encoding for Windows console
+if sys.platform == "win32":
+    import io
+
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8")
+
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger(__name__)
 
@@ -83,6 +96,11 @@ def main():
                 CLASS_NAME: [
                     MessageHandler(filters.TEXT & ~filters.COMMAND, receive_class_name)
                 ],
+                COMPUTER_USAGE: [
+                    MessageHandler(
+                        filters.TEXT & ~filters.COMMAND, receive_computer_usage
+                    )
+                ],
                 QUESTION_1: [
                     MessageHandler(filters.TEXT & ~filters.COMMAND, receive_answer_1)
                 ],
@@ -119,7 +137,7 @@ def main():
 
         # Add handlers
         application.add_handler(conv_handler)
-
+        application.add_error_handler(error_handler)
         # Start bot
         logger.info("Bot started successfully!")
         logger.info("Press Ctrl+C to stop")
