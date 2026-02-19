@@ -296,7 +296,7 @@ def main():
             )
             with engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
-            st.success("✅ Connected")
+           
             engine.dispose()
         except Exception as e:
             st.error(f"❌ DB Offline: {e}")
