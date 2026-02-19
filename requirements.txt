@@ -3,6 +3,7 @@ python-telegram-bot==20.7
 mysql-connector-python==8.2.0
 python-dotenv==1.0.0
 sqlalchemy>=2.0
+pymysql  
 
 # --- Dashboard Dependencies ---
 streamlit
